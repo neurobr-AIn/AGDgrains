@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AGD Grain Inter-Rater Agreement Assesssment</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f6fb; color: #111; min-height: 100vh; }
+
+  .page { display: none; }
+  .page.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; }
+
+  /* Welcome */
+  #welcome-page { background: #f4f6fb; }
+  .welcome-box { background: #fff; border-radius: 16px; padding: 48px 40px; max-width: 620px; width: 100%; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+  .welcome-box h1 { font-size: 28px; color: #010048; margin-bottom: 8px; text-align: center; }
+  .welcome-box h2 { font-size: 16px; color: #C8B88A; text-align: center; margin-bottom: 24px; font-weight: 600; letter-spacing: .02em; }
+  .instructions { text-align: left; margin-bottom: 28px; }
+  .instructions li { font-size: 15px; color: #374151; margin-bottom: 10px; line-height: 1.5; list-style: none; padding-left: 28px; position: relative; }
+  .instructions li::before { content: counter(step); counter-increment: step; position: absolute; left: 0; top: 0; background: #090088; color: #fff; font-size: 12px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  ol.instructions { counter-reset: step; }
+  .username-row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .username-row input { padding: 10px 16px; font-size: 15px; border: 1.5px solid #d1d5db; border-radius: 8px; outline: none; width: 220px; }
+  .username-row input:focus { border-color: #090088; }
+  .btn-start { background: #090088; color: #fff; border: none; border-radius: 8px; padding: 10px 28px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; }
+  .btn-start:hover { background: #0C447C; }
+  .error-msg { color: #dc2626; font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+
+  /* Quiz */
+  #quiz-page { background: #f4f6fb; padding: 24px 16px; height: 100vh; }
+  .quiz-topbar { width: 100%; max-width: 1100px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .quiz-topbar h1 { font-size: 20px; color: #010048; font-weight: 700; }
+  .progress-label { font-size: 14px; color: #6b7280; }
+  .progress-bar-track { width: 100%; max-width: 1100px; height: 5px; background: #e5e7eb; border-radius: 99px; margin-bottom: 20px; }
+  .progress-bar-fill { height: 5px; background: #090088; border-radius: 99px; transition: width .4s; }
+  .image-frame { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 16px; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; }
+  .image-frame img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+  .btn-row { display: flex; gap: 24px; justify-content: center; }
+  .btn-yes { background: #090088; color: #fff; border: none; border-radius: 10px; padding: 16px 52px; font-size: 28px; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .btn-yes:hover { background: #0C447C; }
+  .btn-no { background: #fff; color: #090088; border: 2.5px solid #090088; border-radius: 10px; padding: 16px 52px; font-size: 28px; font-weight: 700; cursor: pointer; transition: all .2s; }
+  .btn-no:hover { background: #f0f4ff; }
+
+  /* Saving overlay */
+  #saving-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center; }
+  #saving-overlay.show { display:flex; }
+  .saving-box { background:#fff; border-radius:14px; padding:36px 48px; text-align:center; font-size:17px; color:#374151; }
+  .saving-box .spinner { width:36px; height:36px; border:4px solid #e5e7eb; border-top-color:#090088; border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Finished */
+  #finished-page { background: #f4f6fb; text-align: center; }
+  #finished-page p { font-size: 20px; color: #374151; }
+  .save-status { margin-top:16px; font-size:13px; color:#6b7280; text-align:center; }
+  .save-status.ok { color:#15803d; }
+  .save-status.err { color:#dc2626; }
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcome-page" class="page active">
+  <div class="welcome-box">
+    <h1>Welcome to "Grains or Not"</h1>
+    <h2>Instructions</h2>
+    <ol class="instructions">
+      <li>Type in your name below</li>
+      <li>You will be shown images of brain tissue slides</li>
+      <li>Click <strong>Yes</strong> if you see AGD grains</li>
+      <li>Click <strong>No</strong> if you do not see AGD grains</li>
+      <li>Your response will be automatically recorded</li>
+      <li>Make sure you are sure of your answer — you cannot go back</li>
+    </ol>
+    <div class="username-row">
+      <input type="text" id="username-input" placeholder="Your name" />
+      <button class="btn-start" onclick="startQuiz()">Start</button>
+    </div>
+    <div class="error-msg" id="welcome-error"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-page" class="page">
+  <div class="quiz-topbar">
+    <h1>AGD Grain Inter-Rater Agreement Assessment</h1>
+    <span class="progress-label" id="progress-label"></span>
+  </div>
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-bar"></div>
+  </div>
+  <div class="image-frame">
+    <img id="quiz-image" src="" alt="Slide image" />
+  </div>
+  <div class="btn-row">
+    <button class="btn-yes" onclick="answer('Yes')">Yes</button>
+    <button class="btn-no" onclick="answer('No')">No</button>
+  </div>
+</div>
+
+<!-- SAVING OVERLAY -->
+<div id="saving-overlay">
+  <div class="saving-box">
+    <div class="spinner"></div>
+    Saving your responses…
+  </div>
+</div>
+
+<!-- FINISHED -->
+<div id="finished-page" class="page">
+  <p>Thank you for completing the inter-rater agreement assessment.</p>
+  <div class="save-status" id="save-status"></div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmscKtM8v7LS6sBCYwl6Lfl9Uw_qv6p4PARNNn-wO3UL48_FRgvcY5cVMd4b7p0N6kFQ/exec';
+
+const GITHUB_USER = 'neurobr-AIn';
+const GITHUB_REPO = 'AGDgrains';
+
+const IMAGE_BASE = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/images/`;
+
+// ── IMAGE LIST ────────────────────────────────────────────────
+const IMAGES = [
+  "IMG_001.jpg","IMG_002.jpg","IMG_003.jpg","IMG_004.jpg","IMG_005.jpg",
+  "IMG_006.jpg","IMG_007.jpg","IMG_008.jpg","IMG_009.jpg","IMG_010.jpg",
+  "IMG_011.jpg","IMG_012.jpg","IMG_013.jpg","IMG_014.jpg","IMG_015.jpg",
+  "IMG_016.jpg","IMG_017.jpg","IMG_018.jpg","IMG_019.jpg","IMG_020.jpg",
+  "IMG_021.jpg","IMG_022.jpg","IMG_023.jpg","IMG_024.jpg","IMG_025.jpg",
+  "IMG_026.jpg","IMG_027.jpg","IMG_028.jpg","IMG_029.jpg","IMG_030.jpg",
+  "IMG_031.jpg","IMG_032.jpg","IMG_033.jpg","IMG_034.jpg","IMG_035.jpg",
+  "IMG_036.jpg","IMG_037.jpg","IMG_038.jpg","IMG_039.jpg","IMG_040.jpg",
+  "IMG_041.jpg","IMG_042.jpg","IMG_043.jpg","IMG_044.jpg","IMG_045.jpg",
+  "IMG_046.jpg","IMG_047.jpg","IMG_048.jpg","IMG_049.jpg","IMG_050.jpg",
+  "IMG_051.jpg","IMG_052.jpg","IMG_053.jpg","IMG_054.jpg","IMG_055.jpg",
+  "IMG_056.jpg","IMG_057.jpg","IMG_058.jpg","IMG_059.jpg","IMG_060.jpg",
+  "IMG_061.jpg","IMG_062.jpg","IMG_063.jpg","IMG_064.jpg","IMG_065.jpg",
+  "IMG_066.jpg","IMG_067.jpg","IMG_068.jpg","IMG_069.jpg","IMG_070.jpg",
+  "IMG_071.jpg","IMG_072.jpg","IMG_073.jpg","IMG_074.jpg","IMG_075.jpg",
+  "IMG_076.jpg","IMG_077.jpg","IMG_078.jpg"
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let username = '';
+let order = [];
+let currentIndex = 0;
+let responses = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  const val = document.getElementById('username-input').value.trim();
+  if (!val) {
+    document.getElementById('welcome-error').textContent = 'Please enter your name to continue.';
+    return;
+  }
+  username = val;
+  order = shuffle(IMAGES);
+  currentIndex = 0;
+  responses = [];
+  showPage('quiz-page');
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const img = order[currentIndex];
+  const total = order.length;
+  document.getElementById('progress-label').textContent = `Image ${currentIndex + 1} of ${total}`;
+  document.getElementById('progress-bar').style.width = `${((currentIndex) / total) * 100}%`;
+  document.getElementById('quiz-image').src = IMAGE_BASE + encodeURIComponent(img);
+}
+
+function answer(response) {
+  responses.push({ image: order[currentIndex], response });
+  currentIndex++;
+  if (currentIndex >= order.length) {
+    finishQuiz();
+  } else {
+    renderQuiz();
+  }
+}
+
+async function finishQuiz() {
+  document.getElementById('saving-overlay').classList.add('show');
+
+  try {
+    const payload = {
+      username,
+      timestamp: new Date().toISOString(),
+      responses
+    };
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('save-status').textContent = '✓ Responses saved successfully.';
+    document.getElementById('save-status').className = 'save-status ok';
+  } catch (e) {
+    document.getElementById('save-status').textContent = '⚠ Could not save responses. Please contact the researcher.';
+    document.getElementById('save-status').className = 'save-status err';
+  }
+
+  document.getElementById('saving-overlay').classList.remove('show');
+  showPage('finished-page');
+}
+
+document.getElementById('username-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startQuiz();
+});
+</script>
+</body>
+</html>
